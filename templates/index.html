@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product["Product Name"] }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #0073e6;
+        }
+        p {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background: #e9f5ff;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .images-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        img {
+            width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ product["Product Name"] }}</h1>
+        <p><strong>Rating:</strong> {{ product["Rating"] }}</p>
+        <p><strong>Number of Ratings:</strong> {{ product["Number of Ratings"] }}</p>
+        <p><strong>Price:</strong> ₹{{ product["Selling Price"] }}</p>
+        <p><strong>Discount:</strong> {{ product["Total Discount"] }}</p>
+
+        <h2>Bank Offers</h2>
+        <ul>
+            {% for offer in product["Bank Offers"] %}
+                <li>{{ offer }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>About This Item</h2>
+        <ul>
+            {% for bullet in product["About This Item"] %}
+                <li>{{ bullet }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Product Images</h2>
+        <div class="images-container">
+            {% for img in product["Amazon Product Images"] %}
+                <img src="{{ img }}" alt="Product Image">
+            {% endfor %}
+        </div>
+
+        <h2>Manufacturer Images</h2>
+        <div class="images-container">
+            {% for img in product["From the Manufacturer Images"] %}
+                <img src="{{ img }}" alt="Manufacturer Image">
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
