@@ -3,29 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product["Product Name"] }}</title>
+    <title>Amazon Scraper</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
+            text-align: center;
         }
         .container {
-            max-width: 900px;
-            margin: 0 auto;
+            max-width: 1800px;
             background: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: auto;
         }
-        h1, h2 {
-            color: #0073e6;
+        h1 {
+            color:rgb(133, 160, 187);
         }
-        p {
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
             font-size: 16px;
-            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 70%;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: rgb(133, 160, 187);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: rgb(133, 160, 187);
+        }
+        .loading {
+            font-size: 18px;
+            color: rgb(133, 160, 187);
+            font-weight: bold;
+        }
+        .product-card {
+            text-align: left;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        .product-card h2 {
+            color: #333;
+            border-bottom: 2px solid rgb(133, 160, 187);
+            padding-bottom: 5px;
+        }
+        .product-card p {
+            font-size: 16px;
+            margin: 5px 0;
         }
         ul {
             list-style-type: none;
@@ -42,49 +86,95 @@
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 10px;
+            justify-content: center;
         }
         img {
-            width: 200px;
+            width: 180px;
+            height: auto;
             border-radius: 8px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        img:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>{{ product["Product Name"] }}</h1>
-        <p><strong>Rating:</strong> {{ product["Rating"] }}</p>
-        <p><strong>Number of Ratings:</strong> {{ product["Number of Ratings"] }}</p>
-        <p><strong>Price:</strong> ₹{{ product["Selling Price"] }}</p>
-        <p><strong>Discount:</strong> {{ product["Total Discount"] }}</p>
+        <h1>Amazon Smart tv Scraper</h1>
 
-        <h2>Bank Offers</h2>
-        <ul>
-            {% for offer in product["Bank Offers"] %}
-                <li>{{ offer }}</li>
-            {% endfor %}
-        </ul>
-
-        <h2>About This Item</h2>
-        <ul>
-            {% for bullet in product["About This Item"] %}
-                <li>{{ bullet }}</li>
-            {% endfor %}
-        </ul>
-
-        <h2>Product Images</h2>
-        <div class="images-container">
-            {% for img in product["Amazon Product Images"] %}
-                <img src="{{ img }}" alt="Product Image">
-            {% endfor %}
+        <!-- Input Field and Button -->
+        <div class="input-section">
+            <input type="text" id="amazon_url" placeholder="Enter Amazon Smart tv URL">
+            <button onclick="scrapeAmazon()">Scrape</button>
         </div>
 
-        <h2>Manufacturer Images</h2>
-        <div class="images-container">
-            {% for img in product["From the Manufacturer Images"] %}
-                <img src="{{ img }}" alt="Manufacturer Image">
-            {% endfor %}
-        </div>
+        <!-- Results will be displayed here -->
+        <div id="result"></div>
     </div>
+
+    <script>
+        function scrapeAmazon() {
+            let url = document.getElementById('amazon_url').value;
+            if (!url) {
+                alert('Please enter a URL!');
+                return;
+            }
+
+            document.getElementById('result').innerHTML = "<p class='loading'>Scraping data, please wait...</p>";
+
+            fetch('/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+                    return;
+                }
+
+                let resultHtml = `<div class="product-card">`;
+                resultHtml += `<h2>${data["Product Name"]}</h2>`;
+                resultHtml += `<p><strong>Rating:</strong> ${data["Rating"]}</p>`;
+                resultHtml += `<p><strong>Number of Ratings:</strong> ${data["Number of Ratings"]}</p>`;
+                resultHtml += `<p><strong>Price:</strong> ₹${data["Selling Price"]}</p>`;
+                resultHtml += `<p><strong>Discount:</strong> ${data["Total Discount"]}</p>`;
+
+                if (data["Bank Offers"].length > 0) {
+                    resultHtml += `<h2>Bank Offers</h2><ul>`;
+                    data["Bank Offers"].forEach(offer => {
+                        resultHtml += `<li>${offer}</li>`;
+                    });
+                    resultHtml += `</ul>`;
+                }
+
+                if (data["About This Item"].length > 0) {
+                    resultHtml += `<h2>About This Item</h2><ul>`;
+                    data["About This Item"].forEach(item => {
+                        resultHtml += `<li>${item}</li>`;
+                    });
+                    resultHtml += `</ul>`;
+                }
+
+                if (data["Amazon Product Images"].length > 0) {
+                    resultHtml += `<h2>Product Images</h2><div class="images-container">`;
+                    data["Amazon Product Images"].forEach(img => {
+                        resultHtml += `<img src="${img}" alt="Product Image">`;
+                    });
+                    resultHtml += `</div>`;
+                }
+
+                resultHtml += `</div>`;  
+                document.getElementById('result').innerHTML = resultHtml;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = `<p style="color: red;">Failed to fetch data.</p>`;
+                console.error('Error:', error);
+            });
+        }
+    </script>
 </body>
 </html>
