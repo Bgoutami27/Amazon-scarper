@@ -1,13 +1,14 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS  # ✅ Import CORS
 import amazon_scraper  
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates")  # ✅ Ensure Flask can find templates folder
 CORS(app)  # ✅ Enable CORS for all domains
 
 @app.route('/')
 def home():
-    return "Amazon Scraper API is Running!"
+    return render_template("index.html")  # ✅ Serve the HTML page instead of text
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
@@ -24,4 +25,5 @@ def scrape():
         return jsonify({'error': str(e)}), 500  
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))  # ✅ Use Render's dynamic port
+    app.run(host="0.0.0.0", port=port, debug=True)
