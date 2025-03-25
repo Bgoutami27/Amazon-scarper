@@ -13,7 +13,7 @@
             text-align: center;
         }
         .container {
-            max-width: 1800px;
+            max-width: 800px;
             background: white;
             padding: 20px;
             border-radius: 10px;
@@ -21,7 +21,7 @@
             margin: auto;
         }
         h1 {
-            color:rgb(133, 160, 187);
+            color: rgb(133, 160, 187);
         }
         .input-section {
             display: flex;
@@ -47,7 +47,7 @@
             cursor: pointer;
         }
         button:hover {
-            background-color: rgb(133, 160, 187);
+            background-color: rgb(100, 140, 170);
         }
         .loading {
             font-size: 18px;
@@ -98,19 +98,27 @@
         img:hover {
             transform: scale(1.05);
         }
+
+        /* ✅ Mobile Responsive Fix */
+        @media (max-width: 600px) {
+            .input-section {
+                flex-direction: column;
+            }
+            input, button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Amazon Smart tv Scraper</h1>
+        <h1>Amazon Smart TV Scraper</h1>
 
-        <!-- Input Field and Button -->
         <div class="input-section">
-            <input type="text" id="amazon_url" placeholder="Enter Amazon Smart tv URL">
+            <input type="text" id="amazon_url" placeholder="Enter Amazon Smart TV URL">
             <button onclick="scrapeAmazon()">Scrape</button>
         </div>
 
-        <!-- Results will be displayed here -->
         <div id="result"></div>
     </div>
 
@@ -121,12 +129,14 @@
                 alert('Please enter a URL!');
                 return;
             }
-        
+
             document.getElementById('result').innerHTML = "<p class='loading'>Scraping data, please wait...</p>";
-        
-            // ✅ Use the full API URL (change 'your-app-name' to your Render app name)
-            let backendUrl = "https://amazon-scarper-4.onrender.com/scrape";
-        
+
+            // ✅ Dynamic API URL (Local vs Production)
+            let backendUrl = window.location.hostname.includes("localhost") 
+                ? "http://127.0.0.1:5000/scrape"  
+                : "https://amazon-scarper-4.onrender.com/scrape";  
+
             fetch(backendUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -143,48 +153,46 @@
                     document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
                     return;
                 }
-        
+
                 let resultHtml = `<div class="product-card">`;
                 resultHtml += `<h2>${data["Product Name"]}</h2>`;
                 resultHtml += `<p><strong>Rating:</strong> ${data["Rating"]}</p>`;
                 resultHtml += `<p><strong>Number of Ratings:</strong> ${data["Number of Ratings"]}</p>`;
                 resultHtml += `<p><strong>Price:</strong> ₹${data["Selling Price"]}</p>`;
                 resultHtml += `<p><strong>Discount:</strong> ${data["Total Discount"]}</p>`;
-        
-                if (data["Bank Offers"] && data["Bank Offers"].length > 0) {
+
+                if (data["Bank Offers"]?.length > 0) {
                     resultHtml += `<h2>Bank Offers</h2><ul>`;
                     data["Bank Offers"].forEach(offer => {
                         resultHtml += `<li>${offer}</li>`;
                     });
                     resultHtml += `</ul>`;
                 }
-        
-                if (data["About This Item"] && data["About This Item"].length > 0) {
+
+                if (data["About This Item"]?.length > 0) {
                     resultHtml += `<h2>About This Item</h2><ul>`;
                     data["About This Item"].forEach(item => {
                         resultHtml += `<li>${item}</li>`;
                     });
                     resultHtml += `</ul>`;
                 }
-        
-                if (data["Amazon Product Images"] && data["Amazon Product Images"].length > 0) {
+
+                if (data["Amazon Product Images"]?.length > 0) {
                     resultHtml += `<h2>Product Images</h2><div class="images-container">`;
                     data["Amazon Product Images"].forEach(img => {
                         resultHtml += `<img src="${img}" alt="Product Image">`;
                     });
                     resultHtml += `</div>`;
                 }
-        
+
                 resultHtml += `</div>`;  
                 document.getElementById('result').innerHTML = resultHtml;
             })
             .catch(error => {
-                document.getElementById('result').innerHTML = `<p style="color: red;">Failed to fetch data. Please check the backend logs.</p>`;
+                document.getElementById('result').innerHTML = `<p style="color: red;">Failed to fetch data: ${error.message}</p>`;
                 console.error("Error fetching data:", error);
             });
         }
-        
-
-      </script>
+    </script>
 </body>
 </html>
