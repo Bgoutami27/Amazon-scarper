@@ -4,7 +4,7 @@ import amazon_scraper
 import os
 
 app = Flask(__name__, template_folder="templates")  # ✅ Ensure Flask can find templates folder
-CORS(app)  # ✅ Enable CORS for all domains
+CORS(app, resources={r"/scrape": {"origins": "*"}})   # ✅ Enable CORS for all domains
 
 @app.route('/')
 def home():
