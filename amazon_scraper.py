@@ -1,39 +1,41 @@
 import subprocess
-import time
-import json
 import os
-import shutil
+import platform
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-from bs4 import BeautifulSoup
 
 def install_chrome():
-    """ ✅ Install Chrome on Render if not already installed """
-    if not os.path.exists("/usr/bin/google-chrome"):
-        print("Installing Chrome...")
-        subprocess.run("wget -q -O /tmp/chrome.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb", shell=True)
-        subprocess.run("apt-get update && apt-get install -y /tmp/chrome.deb", shell=True)
+    """ ✅ Install Chrome on Linux (Render) if missing """
+    if platform.system() == "Linux" and not os.path.exists("/usr/bin/google-chrome"):
+        print("Installing Chrome on Render...")
+        subprocess.run("apt-get update && apt-get install -y wget curl unzip", shell=True, check=True)
+        subprocess.run("wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb", shell=True, check=True)
+        subprocess.run("dpkg -i google-chrome-stable_current_amd64.deb || apt-get -fy install", shell=True, check=True)
         print("Chrome installed successfully.")
 
 def get_driver():
-    """ ✅ Set up Selenium Chrome Driver """
-    install_chrome()  # Install Chrome if missing
+    """ ✅ Set up Selenium Chrome Driver for Windows & Linux """
+    install_chrome()  # ✅ Install Chrome on Linux if needed
 
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--headless")  # Run without GUI
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # ✅ Set the correct Chrome binary path
-    chrome_options.binary_location = "/usr/bin/google-chrome"
+    # ✅ Detect Windows or Linux
+    if platform.system() == "Windows":  # Windows
+        chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    else:  # Linux (Render)
+        chrome_options.binary_location = "/usr/bin/google-chrome"
 
     # ✅ Install ChromeDriver
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     return driver
+
 
 def get_amazon_tv_details(url):
     driver = get_driver()  # ✅ Use updated driver settings
