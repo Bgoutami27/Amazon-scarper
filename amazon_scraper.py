@@ -1,20 +1,12 @@
 import time
 import json
-import subprocess
+import os
+import shutil
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
-
-# ✅ Install Chrome if it's missing
-def install_chrome():
-    print("Installing Chrome...")  # Debugging step
-    subprocess.run("apt update", shell=True, check=True)
-    subprocess.run("apt install -y wget curl unzip", shell=True, check=True)
-    subprocess.run("wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb", shell=True, check=True)
-    subprocess.run("apt install -y ./google-chrome-stable_current_amd64.deb", shell=True, check=True)
-    print("Chrome installed successfully.")  # Debugging step
 
 # ✅ Configure Chrome options
 def get_driver():
@@ -22,15 +14,20 @@ def get_driver():
     chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.binary_location = "/usr/bin/google-chrome"  # Set correct binary path
+
+    # ✅ Detect Windows or Linux (Render)
+    if os.name == "nt":  # Windows
+        chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    else:  # Render/Linux (Pre-installed Chrome path)
+        chrome_options.binary_location = "/opt/render/.local/bin/google-chrome"
 
     # ✅ Install ChromeDriver and set service
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
+    
     return driver
 
 def get_amazon_tv_details(url):
-    install_chrome()  # ✅ Ensure Chrome is installed before running Selenium
     driver = get_driver()  # ✅ Use updated driver settings
 
     try:
