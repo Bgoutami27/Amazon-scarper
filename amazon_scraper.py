@@ -12,24 +12,24 @@ from webdriver_manager.chrome import ChromeDriverManager
 app = Flask(__name__)
 
 def get_driver():
-    """ ✅ Set up Selenium Chrome Driver for Windows & Render (Linux) """
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # ✅ Run without UI
+    chrome_options.add_argument("--headless")  # ✅ Ensures it runs without UI
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--remote-debugging-port=9222")  # ✅ Fixes some debugging issues
 
-    # ✅ Detect Windows or Render's Linux environment
-    if platform.system() == "Windows":  
-        chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    else:  
-        # ✅ Use Render's pre-installed Chrome binary (Update this if needed)
-        chrome_options.binary_location = "/usr/bin/google-chrome"
+    # ✅ Use Chrome already installed on Render
+    chrome_path = "/usr/bin/google-chrome"
+    driver_path = "/usr/bin/chromedriver"
 
-    # ✅ Install ChromeDriver and set up WebDriver
-    service = Service(ChromeDriverManager().install())
+    if os.path.exists(chrome_path) and os.path.exists(driver_path):
+        service = Service(driver_path)
+    else:
+        service = Service(ChromeDriverManager().install())  # Fallback if missing
+
     driver = webdriver.Chrome(service=service, options=chrome_options)
-
     return driver
+
 
 def get_amazon_tv_details(url):
     """ ✅ Scrape Amazon TV details """
