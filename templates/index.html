@@ -116,65 +116,76 @@
 
     <script>
         function scrapeAmazon() {
-            let url = document.getElementById('amazon_url').value;
-            if (!url) {
-                alert('Please enter a URL!');
-                return;
-            }
+    let url = document.getElementById('amazon_url').value;
+    if (!url) {
+        alert('Please enter a URL!');
+        return;
+    }
 
-            document.getElementById('result').innerHTML = "<p class='loading'>Scraping data, please wait...</p>";
+    document.getElementById('result').innerHTML = "<p class='loading'>Scraping data, please wait...</p>";
 
-            fetch('/scrape', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: url })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
-                    return;
-                }
+    // ✅ Use absolute URL for API request (change to your Render URL when deployed)
+    let backendUrl = window.location.origin.includes("localhost") 
+        ? "http://127.0.0.1:5000/scrape"  // Local Flask API
+        : "https://amazon-scarper-4.onrender.com/";  // Replace with your Render URL
 
-                let resultHtml = `<div class="product-card">`;
-                resultHtml += `<h2>${data["Product Name"]}</h2>`;
-                resultHtml += `<p><strong>Rating:</strong> ${data["Rating"]}</p>`;
-                resultHtml += `<p><strong>Number of Ratings:</strong> ${data["Number of Ratings"]}</p>`;
-                resultHtml += `<p><strong>Price:</strong> ₹${data["Selling Price"]}</p>`;
-                resultHtml += `<p><strong>Discount:</strong> ${data["Total Discount"]}</p>`;
-
-                if (data["Bank Offers"].length > 0) {
-                    resultHtml += `<h2>Bank Offers</h2><ul>`;
-                    data["Bank Offers"].forEach(offer => {
-                        resultHtml += `<li>${offer}</li>`;
-                    });
-                    resultHtml += `</ul>`;
-                }
-
-                if (data["About This Item"].length > 0) {
-                    resultHtml += `<h2>About This Item</h2><ul>`;
-                    data["About This Item"].forEach(item => {
-                        resultHtml += `<li>${item}</li>`;
-                    });
-                    resultHtml += `</ul>`;
-                }
-
-                if (data["Amazon Product Images"].length > 0) {
-                    resultHtml += `<h2>Product Images</h2><div class="images-container">`;
-                    data["Amazon Product Images"].forEach(img => {
-                        resultHtml += `<img src="${img}" alt="Product Image">`;
-                    });
-                    resultHtml += `</div>`;
-                }
-
-                resultHtml += `</div>`;  
-                document.getElementById('result').innerHTML = resultHtml;
-            })
-            .catch(error => {
-                document.getElementById('result').innerHTML = `<p style="color: red;">Failed to fetch data.</p>`;
-                console.error('Error:', error);
-            });
+    fetch(backendUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.statusText}`);
         }
-    </script>
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            document.getElementById('result').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+            return;
+        }
+
+        let resultHtml = `<div class="product-card">`;
+        resultHtml += `<h2>${data["Product Name"]}</h2>`;
+        resultHtml += `<p><strong>Rating:</strong> ${data["Rating"]}</p>`;
+        resultHtml += `<p><strong>Number of Ratings:</strong> ${data["Number of Ratings"]}</p>`;
+        resultHtml += `<p><strong>Price:</strong> ₹${data["Selling Price"]}</p>`;
+        resultHtml += `<p><strong>Discount:</strong> ${data["Total Discount"]}</p>`;
+
+        if (data["Bank Offers"] && data["Bank Offers"].length > 0) {
+            resultHtml += `<h2>Bank Offers</h2><ul>`;
+            data["Bank Offers"].forEach(offer => {
+                resultHtml += `<li>${offer}</li>`;
+            });
+            resultHtml += `</ul>`;
+        }
+
+        if (data["About This Item"] && data["About This Item"].length > 0) {
+            resultHtml += `<h2>About This Item</h2><ul>`;
+            data["About This Item"].forEach(item => {
+                resultHtml += `<li>${item}</li>`;
+            });
+            resultHtml += `</ul>`;
+        }
+
+        if (data["Amazon Product Images"] && data["Amazon Product Images"].length > 0) {
+            resultHtml += `<h2>Product Images</h2><div class="images-container">`;
+            data["Amazon Product Images"].forEach(img => {
+                resultHtml += `<img src="${img}" alt="Product Image">`;
+            });
+            resultHtml += `</div>`;
+        }
+
+        resultHtml += `</div>`;  
+        document.getElementById('result').innerHTML = resultHtml;
+    })
+    .catch(error => {
+        document.getElementById('result').innerHTML = `<p style="color: red;">Failed to fetch data. Please check the backend logs.</p>`;
+        console.error("Error fetching data:", error);
+    });
+}
+
+      </script>
 </body>
 </html>
