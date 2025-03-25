@@ -7,30 +7,35 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 
-# Install Chrome if missing
+# ✅ Install Chrome if it's missing
 def install_chrome():
-    subprocess.run("wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb", shell=True)
-    subprocess.run("apt-get install -y ./google-chrome-stable_current_amd64.deb", shell=True)
+    print("Installing Chrome...")  # Debugging step
+    subprocess.run("apt update", shell=True, check=True)
+    subprocess.run("apt install -y wget curl unzip", shell=True, check=True)
+    subprocess.run("wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb", shell=True, check=True)
+    subprocess.run("apt install -y ./google-chrome-stable_current_amd64.deb", shell=True, check=True)
+    print("Chrome installed successfully.")  # Debugging step
 
-# Configure Chrome options
+# ✅ Configure Chrome options
 def get_driver():
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run Chrome in headless mode
+    chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.binary_location = "/usr/bin/google-chrome"  # Set correct binary path
 
-    # Use ChromeDriverManager to install ChromeDriver
-    service = Service(ChromeDriverManager().install())  
+    # ✅ Install ChromeDriver and set service
+    service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     return driver
 
 def get_amazon_tv_details(url):
-    install_chrome()  # Ensure Chrome is installed
-    driver = get_driver()  # Use updated driver settings
+    install_chrome()  # ✅ Ensure Chrome is installed before running Selenium
+    driver = get_driver()  # ✅ Use updated driver settings
 
     try:
         driver.get(url)
-        time.sleep(5)  
+        time.sleep(5)  # Allow page to load
 
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
