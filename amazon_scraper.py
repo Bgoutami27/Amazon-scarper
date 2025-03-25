@@ -7,25 +7,23 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-
-app = Flask(__name__)
+import os
 
 def get_driver():
     chrome_options = Options()
-    chrome_options.add_argument("--headless")  # ✅ Ensures it runs without UI
+    chrome_options.add_argument("--headless")  # ✅ Run in headless mode
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--remote-debugging-port=9222")  # ✅ Fixes some debugging issues
 
-    # ✅ Use Chrome already installed on Render
+    # ✅ Use pre-installed Chrome and ChromeDriver on Render
     chrome_path = "/usr/bin/google-chrome"
     driver_path = "/usr/bin/chromedriver"
 
     if os.path.exists(chrome_path) and os.path.exists(driver_path):
-        service = Service(driver_path)
+        service = Service(driver_path)  # ✅ Use Render's built-in ChromeDriver
     else:
-        service = Service(ChromeDriverManager().install())  # Fallback if missing
+        from webdriver_manager.chrome import ChromeDriverManager
+        service = Service(ChromeDriverManager().install())  # ✅ Use only if not available
 
     driver = webdriver.Chrome(service=service, options=chrome_options)
     return driver
