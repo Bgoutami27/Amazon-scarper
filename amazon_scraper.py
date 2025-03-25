@@ -1,16 +1,33 @@
 import time
 import json
+import subprocess
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 
+# Install Chrome if missing
+def install_chrome():
+    subprocess.run("wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb", shell=True)
+    subprocess.run("apt-get install -y ./google-chrome-stable_current_amd64.deb", shell=True)
+
+# Configure Chrome options
+def get_driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run Chrome in headless mode
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    # Use ChromeDriverManager to install ChromeDriver
+    service = Service(ChromeDriverManager().install())  
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    return driver
+
 def get_amazon_tv_details(url):
-    options = webdriver.ChromeOptions()
-    options.add_argument('--headless')  
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
+    install_chrome()  # Ensure Chrome is installed
+    driver = get_driver()  # Use updated driver settings
+
     try:
         driver.get(url)
         time.sleep(5)  
@@ -87,6 +104,7 @@ def get_amazon_tv_details(url):
     finally:
         driver.quit()
 
-# Run the scraper and save data
-url = "https://www.amazon.in/Samsung-inches-Ready-UA32T4380AKXXL-Glossy/dp/B0B8YTGC23/ref=sr_1_3?adgrpid=1313918002217057&dib=eyJ2IjoiMSJ9.sIU0B8VBuS719wDNklkGjAvgQ_-S7UziqsRbDGlGyznycuGypqzPOrJjtiDFPZmqdGInJw7wn4BS2ZQ3QcXRyppf6K2Zp4hrcrL4O1X7cisDBiTpGoi4_VrSobiQX_YQX8UF7wOIwjDFQl1hh5qsPMP2BaXOYCxpBulY4WINtN38Nr3rheSnJ89PrOuQRklEDqfNTU2BXnDb1AJMpQzitu7IVTPnGT1rOhbwgPZAIGU.uENyCxzy1JqGLwxS-Gnw4RSuA066gjUXkmUcR72Dxh0&dib_tag=se&hvadid=82120134631363&hvbmt=be&hvdev=c&hvlocphy=149309&hvnetw=o&hvqmt=e&hvtargid=kwd-82120754607171%3Aloc-90&hydadcr=21659_1988875&keywords=tv&msclkid=6e01e209bdee1e4edc6685d70153a54d&qid=1742650559&sr=8-3&th=1"
-get_amazon_tv_details(url)
+# Example: Run the scraper with a sample URL
+if __name__ == "__main__":
+    url = "https://www.amazon.in/dp/B0B8YTGC23"
+    print(get_amazon_tv_details(url))
