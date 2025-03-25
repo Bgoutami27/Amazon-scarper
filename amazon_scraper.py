@@ -2,11 +2,14 @@ import os
 import platform
 import time
 import json
+from flask import Flask, request, jsonify
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+
+app = Flask(__name__)
 
 def get_driver():
     """ ✅ Set up Selenium Chrome Driver for Windows & Render (Linux) """
@@ -19,8 +22,8 @@ def get_driver():
     if platform.system() == "Windows":  
         chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
     else:  
-        # ✅ Use Render's pre-installed Chrome binary
-        chrome_options.binary_location = "/opt/render/.local/bin/google-chrome"
+        # ✅ Use Render's pre-installed Chrome binary (Update this if needed)
+        chrome_options.binary_location = "/usr/bin/google-chrome"
 
     # ✅ Install ChromeDriver and set up WebDriver
     service = Service(ChromeDriverManager().install())
@@ -29,7 +32,8 @@ def get_driver():
     return driver
 
 def get_amazon_tv_details(url):
-    driver = get_driver()  # ✅ Use updated driver settings
+    """ ✅ Scrape Amazon TV details """
+    driver = get_driver()
 
     try:
         driver.get(url)
@@ -59,28 +63,12 @@ def get_amazon_tv_details(url):
         about_section = soup.find('div', {'id': 'feature-bullets'})
         about_this_item = [li.text.strip() for li in about_section.find_all('li')] if about_section else []
         
-        product_info = {}
-        info_table = soup.find('table', {'id': 'productDetails_techSpec_section_1'})
-        if info_table:
-            rows = info_table.find_all('tr')
-            for row in rows:
-                key = row.find('th').text.strip()
-                value = row.find('td').text.strip()
-                product_info[key] = value
-
         image_urls = []
         image_section = soup.find('div', {'id': 'altImages'})
         if image_section:
             images = image_section.find_all('img')
             for img in images:
                 image_urls.append(img['src'])
-
-        manufacturer_images = []
-        manufacturer_section = soup.find('div', {'id': 'aplus'})
-        if manufacturer_section:
-            images = manufacturer_section.find_all('img')
-            for img in images:
-                manufacturer_images.append(img['src'])
 
         ai_review_section = soup.find('span', {'id': 'cr-summarization-content'})
         ai_review_summary = ai_review_section.text.strip() if ai_review_section else 'N/A'
@@ -93,21 +81,29 @@ def get_amazon_tv_details(url):
             'Total Discount': discount,
             'Bank Offers': bank_offers,
             'About This Item': about_this_item,
-            'Product Information': product_info,
             'Amazon Product Images': image_urls,
-            'From the Manufacturer Images': manufacturer_images,
             'AI Generated Review Summary': ai_review_summary
         }
-
-        with open('amazon_tv_details.json', 'w', encoding='utf-8') as f:
-            json.dump(product_data, f, ensure_ascii=False, indent=4)
 
         return product_data
     
     finally:
         driver.quit()
 
-# Example: Run the scraper with a sample URL
+@app.route('/scrape', methods=['POST'])
+def scrape():
+    """ ✅ API to handle scraping requests """
+    data = request.json
+    url = data.get('url')
+
+    if not url:
+        return jsonify({'error': 'No URL provided'}), 400
+
+    try:
+        result = get_amazon_tv_details(url)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
-
