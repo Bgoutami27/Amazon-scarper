@@ -19,7 +19,7 @@ def get_driver():
     if os.name == "nt":  # Windows
         chrome_options.binary_location = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
     else:  # Render/Linux (Pre-installed Chrome path)
-        chrome_options.binary_location = "/opt/render/.local/bin/google-chrome"
+        chrome_options.binary_location = "/usr/bin/google-chrome"
 
     # ✅ Install ChromeDriver and set service
     service = Service(ChromeDriverManager().install())
@@ -108,5 +108,5 @@ def get_amazon_tv_details(url):
 
 # Example: Run the scraper with a sample URL
 if __name__ == "__main__":
-    url = "https://www.amazon.in/dp/B0B8YTGC23"
-    print(get_amazon_tv_details(url))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
+
